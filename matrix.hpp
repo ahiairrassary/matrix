@@ -47,6 +47,7 @@ public:
 
     static matrix plus(const matrix & A, const matrix & B);
     static matrix minus(const matrix & A, const matrix & B);
+    static matrix mldivide(const matrix & A, const matrix & B);
     static matrix mtimes(const matrix & A, const matrix & B);
     static matrix times(const matrix & A, const matrix & B);
 

@@ -201,6 +201,44 @@ matrix matrix::minus(const matrix & A, const matrix & B)
 
 
 /*
+    MATRIX::MLDIVIDE
+    Solve systems of linear equations Ax = B for x.
+*/
+matrix matrix::mldivide(const matrix & A, const matrix & B)
+{
+    if(A.rows() != A.columns() || A.rows() != B.rows())
+    {
+        throw std::runtime_error("matrix: mldivide: size error");
+    }
+
+    matrix X = A; /* Details of LU factorization */
+    matrix Y = B; /* Solution */
+
+    int n = (int)A.columns();
+    int nrhs = (int)B.columns();
+    std::vector<int> ipiv(A.columns());
+    int info = 0;
+
+    /* DGESV computes the solution to a real system of linear equations
+           A * X = B,
+       where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
+    */
+    dgesv_(&n, &nrhs,
+           &X.m_data[0], &n,
+           &ipiv[0],
+           &Y.m_data[0], &n,
+           &info);
+
+    if(info != 0)
+    {
+        throw std::runtime_error("matrix: mldivide: dgesv error");
+    }
+
+    return Y;
+}
+
+
+/*
     MATRIX::MTIMES
     C = A*B is the matrix product of A and B.
 */
@@ -213,7 +251,7 @@ matrix matrix::mtimes(const matrix & A, const matrix & B)
 
     matrix C(A.rows(), B.columns());
 
-    /* DGEMM  performs one of the matrix-matrix operations
+    /* DGEMM performs one of the matrix-matrix operations
            C := alpha*op( A )*op( B ) + beta*C
     */
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
@@ -256,8 +294,6 @@ matrix matrix::times(const matrix & A, const matrix & B)
 */
 matrix matrix::inv(const matrix & X)
 {
-    /* TODO : Verifier les infos retournées par la variables info ! */
-
     if(X.rows() != X.columns())
     {
         throw std::runtime_error("matrix: inv: size error");
@@ -265,9 +301,9 @@ matrix matrix::inv(const matrix & X)
 
     matrix Y = X;
 
-    std::vector<int> ipiv(std::min(Y.rows(), Y.columns()));
     int m = (int)Y.rows();
     int n = (int)Y.columns();
+    std::vector<int> ipiv(std::min(Y.rows(), Y.columns()));
     int info = 0;
 
     /* DGETRF computes an LU factorization of a general M-by-N matrix A
@@ -284,14 +320,14 @@ matrix matrix::inv(const matrix & X)
     }
 
 
-    int lwork = m*m;
+    int lwork = n;
     std::vector<double> work((size_t)lwork);
 
     /* DGETRI computes the inverse of a matrix using the LU factorization
        computed by DGETRF.
     */
-    dgetri_(&m,
-            &Y.m_data[0], &m,
+    dgetri_(&n,
+            &Y.m_data[0], &n,
             &ipiv[0],
             &work[0], &lwork,
             &info);
