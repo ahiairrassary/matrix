@@ -1,6 +1,7 @@
 #include "matrix.hpp"
 
 #include <cmath>
+#include <iomanip>
 
 //#include <cblas.h> /* LINUX */
 #include <Accelerate/Accelerate.h> /* MACOS */
@@ -8,45 +9,45 @@
 
 matrix::matrix()
 {
-    m_column = 1;
-    m_row = 1;
+    m_columns = 1;
+    m_rows = 1;
 
     m_data.resize(1, 0.0);
 }
 
 
-matrix::matrix(size_t number)
+matrix::matrix(size_t n)
 {
-    if(number == 0)
+    if(n == 0)
     {
-       throw std::runtime_error("matrix: constructor: size error");
+       throw std::runtime_error("matrix: constructor: dimension error");
     }
 
-    m_column = number;
-    m_row = number;
+    m_columns = n;
+    m_rows = n;
 
-    m_data.resize(column()*row(), 0.0);
+    m_data.resize(columns()*rows(), 0.0);
 }
 
 
-matrix::matrix(size_t r_number, size_t c_number)
+matrix::matrix(size_t n, size_t m)
 {
-    if(r_number == 0 || c_number == 0)
+    if(n == 0 || m == 0)
     {
-       throw std::runtime_error("matrix: constructor: size error");
+       throw std::runtime_error("matrix: constructor: dimension error");
     }
 
-    m_column = c_number;
-    m_row = r_number;
+    m_columns = m;
+    m_rows = n;
 
-    m_data.resize(column()*row(), 0.0);
+    m_data.resize(columns()*rows(), 0.0);
 }
 
 
 matrix::matrix(const matrix & X)
 {
-    m_column = X.m_column;
-    m_row = X.m_row;
+    m_columns = X.m_columns;
+    m_rows = X.m_rows;
 
     m_data = X.m_data;
 }
@@ -56,24 +57,22 @@ matrix::matrix(const std::initializer_list<std::initializer_list<double>> & list
 {
     /* TODO : Tester que toutes les listes font la bonne taille ! */
 
-    m_column = (*list.begin()).size();
-    m_row = list.size();
+    m_columns = (*list.begin()).size();
+    m_rows = list.size();
+
+    m_data.reserve(columns()*rows());
 
     /* Column-major order */
-    m_data.reserve(column()*row());
-
-    for(size_t c(0); c < column(); ++c)
+    for(size_t i(0); i < columns(); ++i)
     {
         for(const std::initializer_list<double> & l : list)
         {
-            m_data.push_back(*(l.begin() + c));
+            m_data.push_back(*(l.begin() + i));
         }
     }
 
     /* Row-major order */
     /*
-    m_data.reserve(column()*row());
-
     for(const std::initializer_list<double> & l : list)
     {
         m_data.insert(m_data.end(), l.begin(), l.end());
@@ -84,8 +83,8 @@ matrix::matrix(const std::initializer_list<std::initializer_list<double>> & list
 
 matrix & matrix::operator=(const matrix & X)
 {
-    m_column = X.m_column;
-    m_row = X.m_row;
+    m_columns = X.m_columns;
+    m_rows = X.m_rows;
 
     m_data = X.m_data;
 
@@ -93,67 +92,67 @@ matrix & matrix::operator=(const matrix & X)
 }
 
 
-double & matrix::at(size_t r_idx, size_t c_idx)
+double & matrix::at(size_t row_idx, size_t column_idx)
 {
-    if(r_idx >= row() || c_idx >= column())
+    if(row_idx >= rows() || column_idx >= columns())
     {
         throw std::runtime_error("matrix: at: out of bounds");
     }
 
-    return m_data.at(r_idx + c_idx * row());
+    return m_data.at(row_idx + column_idx*rows());
 }
 
 
-const double & matrix::at(size_t r_idx, size_t c_idx) const
+const double & matrix::at(size_t row_idx, size_t column_idx) const
 {
-    if(r_idx >= row() || c_idx >= column())
+    if(row_idx >= rows() || column_idx >= columns())
     {
         throw std::runtime_error("matrix: at: out of bounds");
     }
 
-    return m_data.at(r_idx + c_idx * row());
+    return m_data.at(row_idx + column_idx*rows());
 }
 
 
-double & matrix::operator()(size_t r_idx, size_t c_idx)
+double & matrix::operator()(size_t row_idx, size_t column_idx)
 {
-    return at(r_idx, c_idx);
+    return at(row_idx, column_idx);
 }
 
 
-const double & matrix::operator()(size_t r_idx, size_t c_idx) const
+const double & matrix::operator()(size_t row_idx, size_t column_idx) const
 {
-    return at(r_idx, c_idx);
+    return at(row_idx, column_idx);
 }
 
 
-size_t matrix::column() const
+size_t matrix::columns() const
 {
-    return m_column;
+    return m_columns;
 }
 
 
-size_t matrix::row() const
+size_t matrix::rows() const
 {
-    return m_row;
+    return m_rows;
 }
 
 
 void matrix::print(std::ostream & os) const
 {
-    /* TODO : Ameliorer l'affichage des matrices ! */
+    os << std::fixed << std::setprecision(3) << std::right << std::showpos;
 
-    for(size_t r(0); r < row(); ++r)
+    for(size_t r(0); r < rows(); ++r)
     {
-        for(size_t c(0); c < column(); ++c)
+        for(size_t c(0); c < columns(); ++c)
         {
-            os << at(r, c) << ' ';
+            os << std::setw(9) << at(r, c) << ' ';
         }
         
         os << '\n';
     }
 
-    os << "(" << row() << "x" << column() << ")";
+    os << "(" << rows() << "x" << columns() << ")";
 }
 
 
@@ -163,14 +162,14 @@ void matrix::print(std::ostream & os) const
 */
 matrix matrix::plus(const matrix & A, const matrix & B)
 {
-    if(A.row() != B.row() || A.column() != B.column())
+    if(A.rows() != B.rows() || A.columns() != B.columns())
     {
         throw std::runtime_error("matrix: plus: size error");
     }
 
-    matrix C(A.row(), A.column());
+    matrix C(A.rows(), A.columns());
 
-    for(size_t i(0); i < A.m_data.size(); ++i)
+    for(size_t i(0); i < C.m_data.size(); ++i)
     {
         C.m_data[i] = A.m_data[i] + B.m_data[i];
     }
@@ -185,14 +184,14 @@ matrix matrix::plus(const matrix & A, const matrix & B)
 */
 matrix matrix::minus(const matrix & A, const matrix & B)
 {
-    if(A.row() != B.row() || A.column() != B.column())
+    if(A.rows() != B.rows() || A.columns() != B.columns())
     {
         throw std::runtime_error("matrix: minus: size error");
     }
 
-    matrix C(A.row(), A.column());
+    matrix C(A.rows(), A.columns());
 
-    for(size_t i(0); i < A.m_data.size(); ++i)
+    for(size_t i(0); i < C.m_data.size(); ++i)
     {
         C.m_data[i] = A.m_data[i] - B.m_data[i];
     }
@@ -207,23 +206,23 @@ matrix matrix::minus(const matrix & A, const matrix & B)
 */
 matrix matrix::mtimes(const matrix & A, const matrix & B)
 {
-    if(A.column() != B.row())
+    if(A.columns() != B.rows())
     {
         throw std::runtime_error("matrix: mtimes: size error");
     }
 
-    matrix C(A.row(), B.column());
+    matrix C(A.rows(), B.columns());
 
     /* DGEMM  performs one of the matrix-matrix operations
            C := alpha*op( A )*op( B ) + beta*C
     */
     cblas_dgemm(CblasColMajor, CblasNoTrans, CblasNoTrans,
-                (int)A.row(), (int)B.column(), (int)A.column(),
+                (int)A.rows(), (int)B.columns(), (int)A.columns(),
                 1.0, /* alpha */
-                &A.m_data[0], (int)A.row(),
-                &B.m_data[0], (int)B.row(),
+                &A.m_data[0], (int)A.rows(),
+                &B.m_data[0], (int)B.rows(),
                 0.0, /* beta */
-                &C.m_data[0], (int)C.row());
+                &C.m_data[0], (int)C.rows());
 
     return C;
 }
@@ -235,14 +234,14 @@ matrix matrix::mtimes(const matrix & A, const matrix & B)
 */
 matrix matrix::times(const matrix & A, const matrix & B)
 {
-    if(A.row() != B.row() || A.column() != B.column())
+    if(A.rows() != B.rows() || A.columns() != B.columns())
     {
         throw std::runtime_error("matrix: times: size error");
     }
 
-    matrix C(A.row(), A.column());
+    matrix C(A.rows(), A.columns());
 
-    for(size_t i(0); i < A.m_data.size(); ++i)
+    for(size_t i(0); i < C.m_data.size(); ++i)
     {
         C.m_data[i] = A.m_data[i] * B.m_data[i];
     }
@@ -257,18 +256,18 @@ matrix matrix::times(const matrix & A, const matrix & B)
 */
 matrix matrix::inv(const matrix & X)
 {
-    /* TODO : Verifier les infos retournées par la varibales info ! */
+    /* TODO : Verifier les infos retournées par la variables info ! */
 
-    if(X.row() != X.column())
+    if(X.rows() != X.columns())
     {
         throw std::runtime_error("matrix: inv: size error");
     }
 
     matrix Y = X;
 
-    std::vector<int> ipiv(std::min(Y.row(), Y.column()));
-    int m = (int)Y.row();
-    int n = (int)Y.column();
+    std::vector<int> ipiv(std::min(Y.rows(), Y.columns()));
+    int m = (int)Y.rows();
+    int n = (int)Y.columns();
     int info = 0;
 
     /* DGETRF computes an LU factorization of a general M-by-N matrix A
@@ -306,6 +305,23 @@ matrix matrix::inv(const matrix & X)
 }
 
 
+bool matrix::equal(const matrix & A, const matrix & B, const double epsilon)
+{
+    bool result = (A.rows() == B.rows() && A.columns() == B.columns());
+
+
+    for(size_t i(0); i < A.m_data.size() && result; ++i)
+    {
+        if(!(std::abs(A.m_data[i] - B.m_data[i]) < epsilon))
+        {
+            result = false;
+        }
+    }
+
+    return result;
+}
+
+
 
 
 matrix operator+(const matrix & A, const matrix & B)
@@ -323,6 +339,18 @@ matrix operator-(const matrix & A, const matrix & B)
 matrix operator*(const matrix & A, const matrix & B)
 {
     return matrix::mtimes(A, B);
+}
+
+
+bool operator==(const matrix & A, const matrix & B)
+{
+    return matrix::equal(A, B, 1.0e-12);
+}
+
+
+bool operator!=(const matrix & A, const matrix & B)
+{
+    return !matrix::equal(A, B, 1.0e-12);
 }
 
 

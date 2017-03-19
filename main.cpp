@@ -1,57 +1,43 @@
 #include <iostream>
+#include <cassert>
+#include <cmath>
 
 #include "matrix.hpp"
 
 
 int main()
 {
-    matrix A, B, C;
+    matrix A, B, C, D, X, Y, Z;
 
 
     A = {{1.0, 2,  0},
-         {4, 3, -1}};
+         {4, 3.0, -1.0}};
 
     B = {{5, 1},
-         {2, 3},
+         {2.0, 3},
          {3, 4}};
-
-    std::cout << A << "\n" << std::endl;
-    std::cout << B << "\n" << std::endl;
-
 
     C = A*B;
 
+    D = {{9, 7.0},
+         {23, 9}};
+
+    assert(C == D);
+
     std::cout << C << "\n" << std::endl;
-
-
-    matrix X, Y, Z;
-
-    X = {{1, 2, 3},
-         {3, 2, 1}};
-
-    Y = {{4, 1, 1},
-         {4, 1, 1}};
-
-    std::cout << X << "\n" << std::endl;
-    std::cout << Y << "\n" << std::endl;
-
-
-    Z = X+Y;
-
-    std::cout << Z << "\n" << std::endl;
-
-    Z = Z-Y-X;
-
-    std::cout << Z << "\n" << std::endl;
 
 
     A = {{4, 7},
          {2, 6}};
 
-    B = matrix::inv(A);
+    C = matrix::inv(A);
 
-    std::cout << B << "\n" << std::endl;
+    D = {{0.6, -0.7},
+         {-0.2, 0.4}};
 
+    assert(C == D);
+
+    std::cout << C << "\n" << std::endl;
 
     return 0;
 }
@@ -69,12 +55,5 @@ int main()
 
     int64_t elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     std::cout << elapsed_time << std::endl;
-*/
-
-/*
-    #include <iomanip>
-
-
-    std::cout << std::fixed << std::setprecision(4);
 */
 
