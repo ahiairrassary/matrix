@@ -189,12 +189,35 @@ int main()
     /*
         EXEMPLE 2:
     */
+    A = {{1, 1, 1},
+         {1, 1, 2}};
+
+    B = {{1},
+         {3}};
+
+    X = matrix::mldivide(A, B);
+
+    C = {{-0.5},
+         {-0.5},
+         { 2.0}};
+
+    std::cout << X << "\n" << std::endl;
+
+    assert(X == C);
+    assert(A*X == B);
+
+
+    /*
+        EXEMPLE 3:
+    */
+/*
     A = {{0.5,  0.5, 0.5,  0.5},
          {0.5, -1.5, 0.5, -1.5},
          {1.0,  1.0, 0.0,  1.0}};
     
     B = {{1.0,  1.0, 1.0, 0.0},
-         {1.0, -1.0, 2.5, 1.0},
+             //{1.0, -1.0, 2.5, 1.0},
+             {1.0, -1.0, 2.0, 1.0},
          {1.0,  1.0, 3.0, 0.0}};
 
     X = matrix::mldivide(A, B);
@@ -204,13 +227,18 @@ int main()
          {1.0, 1.0,  -1.0,   0.0},
          {0.0, 0.5, -0.25, -0.25}};
 
-std::cout << A << "\n" << std::endl; // SUPPRIMER !!!!
-std::cout << B << "\n" << std::endl; // SUPPRIMER !!!!
-    std::cout << X << "\n" << std::endl;
-std::cout << A*X << "\n" << std::endl; // SUPPRIMER !!!!
+std::cout << "A=\n" << A << "\n" << std::endl; // SUPPRIMER !!!!
+std::cout << "B=\n" << B << "\n" << std::endl; // SUPPRIMER !!!!
+std::cout << "C=\n" << C << "\n" << std::endl; // SUPPRIMER !!!!
+std::cout << "X=\n" << X << "\n" << std::endl; // SUPPRIMER !!!!
+    //std::cout << X << "\n" << std::endl;
+std::cout << "A*X=\n" << A*X << "\n" << std::endl; // SUPPRIMER !!!!
+std::cout << "A*C=\n" << A*C << "\n" << std::endl; // SUPPRIMER !!!!
 
 //    assert(X == C);
 //    assert(A*X == B);
+    assert(A*C == B);
+*/
     // ----------------------------------------
 
 

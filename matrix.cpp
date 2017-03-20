@@ -251,7 +251,8 @@ matrix matrix::mldivide(const matrix & A, const matrix & B)
         int lwork = -1; /* Workspace query */
         int info = 0;
 
-X.m_data.resize(std::max(B.rows()*B.columns() ,A.columns()*B.columns()+10)); // TODO: Reserve la taille de la matrice de sortie si superieur a B !
+        /* Resize the matrix to get the soltuion matrix */
+        X.m_data.resize(std::max(B.rows()*B.columns() ,A.columns()*B.columns()));
 
         /* DGELS solves overdetermined or underdetermined real linear systems
            involving an M-by-N matrix A, or its transpose, using a QR or LQ
@@ -281,41 +282,38 @@ X.m_data.resize(std::max(B.rows()*B.columns() ,A.columns()*B.columns()+10)); // 
                &work[0], &lwork,
                &info);
 
-        /* Y: Details of QR factorization */
-        /* X: Least squares solution */
+        /* Y: Details of factorization */
+        /* X: Solution */
 
         if(info != 0)
         {
             throw std::runtime_error("matrix: mldivide: dgels error");
         }
 
+        /* Update solution matrix dimension */
+        X.m_columns = B.columns();
+        X.m_rows = A.columns();
 
+        /* Reconstruct the solution matrix when M > N */
+        if(m > n)
+        {
+            size_t i = 0;
+            size_t j = 0;
+            size_t k = 0;
 
-/* Update solution matrix dimension */
-X.m_columns = B.columns();
-X.m_rows = A.columns();
+            while(i < X.columns()*X.rows())
+            {
+                for(k = 0; k < X.rows(); ++k)
+                {
+                    X.m_data[i + k] = X.m_data[j + k];
+                }
 
-// TODO : Rearranger la matrice SOLUTION X !!!!!!!!!
+                j += B.rows();
+                i += X.rows();
+            }
 
-size_t i = 0;
-size_t j = 0;
-size_t k = 0;
-
-while (i < X.columns()*X.rows())
-{
-    for(k = 0; k < X.rows(); ++k)
-    {
-        X.m_data[i+k] = X.m_data[j+k];
-    }
-
-    j += B.rows();
-    i += X.rows();
-}
-
-X.m_data.resize(X.columns()*X.rows());
-
-
-
+            X.m_data.resize(X.columns()*X.rows());
+        }
     }
 
     return X;
