@@ -206,35 +206,119 @@ matrix matrix::minus(const matrix & A, const matrix & B)
 */
 matrix matrix::mldivide(const matrix & A, const matrix & B)
 {
-    if(A.rows() != A.columns() || A.rows() != B.rows())
+    if(A.rows() != B.rows())
     {
         throw std::runtime_error("matrix: mldivide: size error");
     }
 
-    matrix X = A; /* Details of LU factorization */
-    matrix Y = B; /* Solution */
+    matrix X = B;
+    matrix Y = A;
 
-    int n = (int)A.columns();
-    int nrhs = (int)B.columns();
-    std::vector<int> ipiv(A.columns());
-    int info = 0;
-
-    /* DGESV computes the solution to a real system of linear equations
-           A * X = B,
-       where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
-    */
-    dgesv_(&n, &nrhs,
-           &X.m_data[0], &n,
-           &ipiv[0],
-           &Y.m_data[0], &n,
-           &info);
-
-    if(info != 0)
+    if(A.rows() == A.columns())
     {
-        throw std::runtime_error("matrix: mldivide: dgesv error");
+        int n = (int)A.columns();
+        int nrhs = (int)B.columns();
+        std::vector<int> ipiv(A.columns());
+        int info = 0;
+
+        /* DGESV computes the solution to a real system of linear equations
+               A * X = B,
+           where A is an N-by-N matrix and X and B are N-by-NRHS matrices.
+        */
+        dgesv_(&n, &nrhs,
+               &Y.m_data[0], &n,
+               &ipiv[0],
+               &X.m_data[0], &n,
+               &info);
+
+        /* Y: Details of LU factorization */
+        /* X: Solution */
+
+        if(info != 0)
+        {
+            throw std::runtime_error("matrix: mldivide: dgesv error");
+        }
+    }
+    else
+    {
+        char trans = 'N';
+        int m = (int)A.rows();
+        int n = (int)A.columns();
+        int nrhs = (int)B.columns();
+        int lda = (int)A.rows();
+        int ldb = (int)std::max(A.rows(), A.columns());
+        double work_query = 0;
+        int lwork = -1; /* Workspace query */
+        int info = 0;
+
+X.m_data.resize(std::max(B.rows()*B.columns() ,A.columns()*B.columns()+10)); // TODO: Reserve la taille de la matrice de sortie si superieur a B !
+
+        /* DGELS solves overdetermined or underdetermined real linear systems
+           involving an M-by-N matrix A, or its transpose, using a QR or LQ
+           factorization of A.
+        */
+        /* Query and allocate the optimal workspace */
+        dgels_(&trans,
+               &m, &n, &nrhs,
+               &Y.m_data[0], &lda,
+               &X.m_data[0], &ldb,
+               &work_query, &lwork,
+               &info);
+
+        if(info != 0)
+        {
+            throw std::runtime_error("matrix: mldivide: dgels error");
+        }
+
+        lwork = (int)work_query;
+        std::vector<double> work((size_t)lwork);
+
+        /* Solve the equations A*X = B */
+        dgels_(&trans,
+               &m, &n, &nrhs,
+               &Y.m_data[0], &lda,
+               &X.m_data[0], &ldb,
+               &work[0], &lwork,
+               &info);
+
+        /* Y: Details of QR factorization */
+        /* X: Least squares solution */
+
+        if(info != 0)
+        {
+            throw std::runtime_error("matrix: mldivide: dgels error");
+        }
+
+
+
+/* Update solution matrix dimension */
+X.m_columns = B.columns();
+X.m_rows = A.columns();
+
+// TODO : Rearranger la matrice SOLUTION X !!!!!!!!!
+
+size_t i = 0;
+size_t j = 0;
+size_t k = 0;
+
+while (i < X.columns()*X.rows())
+{
+    for(k = 0; k < X.rows(); ++k)
+    {
+        X.m_data[i+k] = X.m_data[j+k];
     }
 
-    return Y;
+    j += B.rows();
+    i += X.rows();
+}
+
+X.m_data.resize(X.columns()*X.rows());
+
+
+
+    }
+
+    return X;
 }
 
 
@@ -375,6 +459,12 @@ matrix operator-(const matrix & A, const matrix & B)
 matrix operator*(const matrix & A, const matrix & B)
 {
     return matrix::mtimes(A, B);
+}
+
+
+matrix operator/(const matrix & A, const matrix & B)
+{
+    return matrix::mldivide(A, B);
 }
 
 

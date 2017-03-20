@@ -57,10 +57,10 @@ public:
 
 
 private:
-    std::vector<double> m_data;
-
     size_t m_columns;
     size_t m_rows;
+
+    std::vector<double> m_data;
 
 
 };
@@ -71,6 +71,8 @@ matrix operator+(const matrix & A, const matrix & B);
 matrix operator-(const matrix & A, const matrix & B);
 
 matrix operator*(const matrix & A, const matrix & B);
+
+matrix operator/(const matrix & A, const matrix & B);
 
 bool operator==(const matrix & A, const matrix & B);
 
