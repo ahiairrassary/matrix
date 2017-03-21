@@ -54,6 +54,8 @@ public:
     static matrix inv(const matrix & X);
     static matrix pinv(const matrix & X);
 
+    static matrix transpose(const matrix & X);
+
     static bool equal(const matrix & A, const matrix & B, const double epsilon);
 
 

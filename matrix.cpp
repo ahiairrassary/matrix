@@ -522,6 +522,26 @@ matrix matrix::pinv(const matrix & X)
 }
 
 
+matrix matrix::transpose(const matrix & X)
+{
+    matrix Y(X.columns(), X.rows());
+
+    size_t m = X.rows();
+    size_t n = X.columns();
+
+
+    for(size_t i(0); i < m; ++i)
+    {
+        for(size_t j(0); j < n; ++j)
+        {
+            Y.m_data[i*n + j] = X.m_data[j*m + i];
+        }
+    }
+
+    return Y;
+}
+
+
 bool matrix::equal(const matrix & A, const matrix & B, const double epsilon)
 {
     bool result = (A.rows() == B.rows() && A.columns() == B.columns());
