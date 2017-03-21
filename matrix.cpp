@@ -251,7 +251,7 @@ matrix matrix::mldivide(const matrix & A, const matrix & B)
         int lwork = -1; /* Workspace query */
         int info = 0;
 
-        /* Resize the matrix to get the soltuion matrix */
+        /* Resize the matrix to get the solution matrix */
         X.m_data.resize(std::max(B.rows()*B.columns() ,A.columns()*B.columns()));
 
         /* DGELS solves overdetermined or underdetermined real linear systems
@@ -423,6 +423,105 @@ matrix matrix::inv(const matrix & X)
 }
 
 
+/*
+    MATRIX::PINV
+    B = pinv(A) returns the Moore-Penrose pseudoinverse of A.
+*/
+matrix matrix::pinv(const matrix & X)
+{
+    size_t dim = std::max(X.columns(), X.rows());
+
+    matrix Y = X;
+    matrix W(dim);
+
+    /* Create an identity matrix */
+    for(size_t i(0); i < dim; ++i)
+    {
+        W.at(i, i) = 1.0;
+    }
+
+    /* Resize the matrix to get the solution matrix */
+    W.m_data.resize(std::max(Y.rows()*Y.rows(), Y.rows()*Y.columns()));
+
+    int m = (int)Y.rows();
+    int n = (int)Y.columns();
+    int nrhs = (int)W.columns();
+    int lda = (int)Y.rows();
+    int ldb = (int)std::max(Y.rows(), Y.columns());
+    std::vector<double> s(std::min(Y.rows(), Y.columns()));
+    double rcond = -1.0;
+    int rank = -1;
+    double work_query = 0;
+    int lwork = -1; /* Workspace query */
+    int info = 0;
+
+    /* DGELSS computes the minimum norm solution to a real linear least
+       squares problem:
+           Minimize 2-norm(| b - A*x |).
+
+       using the singular value decomposition (SVD) of A. A is an M-by-N
+       matrix which may be rank-deficient.
+    */
+    /* Query and allocate the optimal workspace */
+    dgelss_(&m, &n, &nrhs,
+            &Y.m_data[0], &lda,
+            &W.m_data[0], &ldb,
+            &s[0],
+            &rcond, &rank,
+            &work_query, &lwork,
+            &info);
+
+    if(info != 0)
+    {
+        throw std::runtime_error("matrix: pinv: dgelss error");
+    }
+
+    lwork = (int)work_query;
+    std::vector<double> work((size_t)lwork);
+
+    /* Solve the solution */
+    dgelss_(&m, &n, &nrhs,
+        &Y.m_data[0], &lda,
+        &W.m_data[0], &ldb,
+        &s[0],
+        &rcond, &rank,
+        &work[0], &lwork,
+        &info);
+
+    if(info != 0)
+    {
+        throw std::runtime_error("matrix: pinv: dgelss error");
+    }
+
+    /* Update solution matrix dimension */
+    W.m_columns = Y.rows();
+    W.m_rows = Y.columns();
+
+    /* Reconstruct the solution matrix when M > N */
+    if(m > n)
+    {
+        size_t i = 0;
+        size_t j = 0;
+        size_t k = 0;
+
+        while(i < W.columns()*W.rows())
+        {
+            for(k = 0; k < W.rows(); ++k)
+            {
+                W.m_data[i + k] = W.m_data[j + k];
+            }
+
+            j += Y.rows();
+            i += W.rows();
+        }
+
+        W.m_data.resize(W.columns()*W.rows());
+    }
+
+    return W;
+}
+
+
 bool matrix::equal(const matrix & A, const matrix & B, const double epsilon)
 {
     bool result = (A.rows() == B.rows() && A.columns() == B.columns());
@@ -457,12 +556,6 @@ matrix operator-(const matrix & A, const matrix & B)
 matrix operator*(const matrix & A, const matrix & B)
 {
     return matrix::mtimes(A, B);
-}
-
-
-matrix operator/(const matrix & A, const matrix & B)
-{
-    return matrix::mldivide(A, B);
 }
 
 

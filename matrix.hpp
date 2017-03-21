@@ -52,6 +52,7 @@ public:
     static matrix times(const matrix & A, const matrix & B);
 
     static matrix inv(const matrix & X);
+    static matrix pinv(const matrix & X);
 
     static bool equal(const matrix & A, const matrix & B, const double epsilon);
 
@@ -71,8 +72,6 @@ matrix operator+(const matrix & A, const matrix & B);
 matrix operator-(const matrix & A, const matrix & B);
 
 matrix operator*(const matrix & A, const matrix & B);
-
-matrix operator/(const matrix & A, const matrix & B);
 
 bool operator==(const matrix & A, const matrix & B);
 

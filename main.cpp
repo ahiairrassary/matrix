@@ -32,8 +32,11 @@ int main()
 
 
 
-    // TEST: INV (A square matrix N-by-N)
+    // TEST: INV (Square matrix)
     // ----------------------------------------
+    /*
+        EXEMPLE 1:
+    */
     A = {{4, 7},
          {2, 6}};
 
@@ -46,15 +49,34 @@ int main()
 
     assert(X == B);
     assert(A*X == X*A);
+    assert(A == matrix::inv(X));
+
+
+    /*
+        EXEMPLE 2:
+    */
+    A = {{2.0, 3.0},
+         {4.0, 5.0}};
+
+    X = matrix::inv(A);
+
+    B = {{-2.5,  1.5},
+         { 2.0, -1.0}};
+
+    std::cout << X << "\n" << std::endl;
+
+    assert(X == B);
+    assert(A*X == X*A);
+    assert(A == matrix::inv(X));
     // ----------------------------------------
 
 
 
 
-    // TEST: MLDIVIDE (A square matrix N-by-N)
+    // TEST: MLDIVIDE (Square matrix)
     // ----------------------------------------
     /*
-        EXEMPLE 1:
+        EXEMPLE 1: (m = n)
         Solve the following linear system of equations (Ax = B):
             x + y = 2
             x - y = 0
@@ -103,7 +125,7 @@ int main()
     // TEST: MLDIVIDE (Least-Squares Solution of Overdetermined System)
     // ----------------------------------------
     /*
-        EXEMPLE 1:
+        EXEMPLE 1: (m > n)
     */
     A = {{1, 1, 1},
          {2, 3, 4},
@@ -130,7 +152,7 @@ int main()
 
 
     /*
-        EXEMPLE 2:
+        EXEMPLE 2: (m > n)
     */
     A = {{0.0,  2.0},
          {2.0, -1.0},
@@ -163,7 +185,7 @@ int main()
     // TEST: MLDIVIDE (Least-Squares Solution of Underdetermined System)
     // ----------------------------------------
     /*
-        EXEMPLE 1:
+        EXEMPLE 1: (m < n)
     */
     A = {{0.0,  2.0,  2.0, 0.0,  2.0,  2.0},
          {2.0, -1.0, -1.0, 1.5, -1.0, -1.0}};
@@ -187,7 +209,7 @@ int main()
 
 
     /*
-        EXEMPLE 2:
+        EXEMPLE 2: (m < n)
     */
     A = {{1, 1, 1},
          {1, 1, 2}};
@@ -208,37 +230,88 @@ int main()
 
 
     /*
-        EXEMPLE 3:
+        EXEMPLE 3: (m < n)
     */
-/*
-    A = {{0.5,  0.5, 0.5,  0.5},
-         {0.5, -1.5, 0.5, -1.5},
-         {1.0,  1.0, 0.0,  1.0}};
-    
-    B = {{1.0,  1.0, 1.0, 0.0},
-             //{1.0, -1.0, 2.5, 1.0},
-             {1.0, -1.0, 2.0, 1.0},
-         {1.0,  1.0, 3.0, 0.0}};
+
+    A = {{0.0,  2.0},
+         {2.0, -1.0},
+         {2.0, -1.0},
+         {0.0,  1.5},
+         {2.0, -1.0},
+         {2.0, -1.0}};
+
+    B = {{1.0,  4.0,  1.0},
+         {1.0,  1.0,  2.0},
+         {1.0, -1.0,  1.0},
+         {1.0,  3.0,  2.0},
+         {1.0,  1.0,  1.0},
+         {1.0, -1.0,  1.0}};
 
     X = matrix::mldivide(A, B);
 
-    C = {{1.0, 0.0,   3.5,   0.5},
-         {0.0, 0.5, -0.25, -0.25},
-         {1.0, 1.0,  -1.0,   0.0},
-         {0.0, 0.5, -0.25, -0.25}};
+    C = {{0.7800, 1.0000, 1.0250},
+         {0.5600, 2.0000, 0.8000}};
 
-std::cout << "A=\n" << A << "\n" << std::endl; // SUPPRIMER !!!!
-std::cout << "B=\n" << B << "\n" << std::endl; // SUPPRIMER !!!!
-std::cout << "C=\n" << C << "\n" << std::endl; // SUPPRIMER !!!!
-std::cout << "X=\n" << X << "\n" << std::endl; // SUPPRIMER !!!!
-    //std::cout << X << "\n" << std::endl;
-std::cout << "A*X=\n" << A*X << "\n" << std::endl; // SUPPRIMER !!!!
-std::cout << "A*C=\n" << A*C << "\n" << std::endl; // SUPPRIMER !!!!
+    std::cout << X << "\n" << std::endl;
 
-//    assert(X == C);
-//    assert(A*X == B);
-    assert(A*C == B);
-*/
+    assert(X == C);
+    // ----------------------------------------
+
+
+    // TEST: PINV
+    // ----------------------------------------
+    /*
+        EXEMPLE 1: (m > n)
+    */
+    A = {{64,  2,  3, 61, 60,  6},
+         { 9, 55, 54, 12, 13, 51},
+         {17, 47, 46, 20, 21, 43},
+         {40, 26, 27, 37, 36, 30},
+         {32, 34, 35, 29, 28, 38},
+         {41, 23, 22, 44, 45, 19},
+         {49, 15, 14, 52, 53, 11},
+         { 8, 58, 59,  5,  4, 62}};
+
+    X = matrix::pinv(A);
+
+    std::cout << X << "\n" << std::endl;
+
+    assert(A == matrix::pinv(X));
+    assert(A*X*A == A);
+    assert(X*A*X == X);
+
+
+    /*
+        EXEMPLE 2: (m < n)
+    */
+    A = {{64,  2,  3, 61, 60,  6},
+         { 9, 55, 54, 12, 13, 51}};
+
+    X = matrix::pinv(A);
+
+    std::cout << X << "\n" << std::endl;
+
+    assert(A == matrix::pinv(X));
+    assert(A*X*A == A);
+    assert(X*A*X == X);
+
+
+    /*
+        EXEMPLE 3: (m = n)
+    */
+    A = {{ 12, -27,  36,  44,  59},
+         { 26,  41, -54,  24,  23},
+         { 33,  70,  59,  15, -68},
+         { 43,  16,  29, -52, -61},
+         {-43,  20,  71,  88,  11}};
+
+    X = matrix::pinv(A);
+
+    std::cout << X << "\n" << std::endl;
+
+    assert(A == matrix::pinv(X));
+    assert(A*X*A == A);
+    assert(X*A*X == X);
     // ----------------------------------------
 
 
