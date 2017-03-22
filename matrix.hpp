@@ -46,10 +46,13 @@ public:
     void print(std::ostream & os) const;
 
     static matrix plus(const matrix & A, const matrix & B);
+    static matrix plus(double n, const matrix & X);
     static matrix minus(const matrix & A, const matrix & B);
+    static matrix minus(double n, const matrix & X);
     static matrix mldivide(const matrix & A, const matrix & B);
     static matrix mtimes(const matrix & A, const matrix & B);
     static matrix times(const matrix & A, const matrix & B);
+    static matrix times(double n, const matrix & X);
 
     static matrix inv(const matrix & X);
     static matrix pinv(const matrix & X);
@@ -70,10 +73,13 @@ private:
 
 
 matrix operator+(const matrix & A, const matrix & B);
+matrix operator+(double n, const matrix & X);
 
 matrix operator-(const matrix & A, const matrix & B);
+matrix operator-(double n, const matrix & X);
 
 matrix operator*(const matrix & A, const matrix & B);
+matrix operator*(double n, const matrix & X);
 
 bool operator==(const matrix & A, const matrix & B);
 

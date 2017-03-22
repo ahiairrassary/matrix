@@ -3,7 +3,8 @@
 #include <cmath>
 #include <iomanip>
 
-//#include <cblas.h> /* LINUX */
+/* #include <cblas.h> */ /* LINUX */
+/* #include <lapacke.h> */ /* LINUX */
 #include <Accelerate/Accelerate.h> /* MACOS */
 
 
@@ -178,6 +179,19 @@ matrix matrix::plus(const matrix & A, const matrix & B)
 }
 
 
+matrix matrix::plus(double n, const matrix & X)
+{
+    matrix Y(X);
+
+    for(size_t i(0); i < Y.m_data.size(); ++i)
+    {
+        Y.m_data[i] = n + Y.m_data[i];
+    }
+
+    return Y;
+}
+
+
 /*
     MATRIX::MINUS
     C = A - B subtracts array B from array A and returns the result in C.
@@ -197,6 +211,19 @@ matrix matrix::minus(const matrix & A, const matrix & B)
     }
 
     return C;
+}
+
+
+matrix matrix::minus(double n, const matrix & X)
+{
+    matrix Y(X);
+
+    for(size_t i(0); i < Y.m_data.size(); ++i)
+    {
+        Y.m_data[i] =  n - Y.m_data[i];
+    }
+
+    return Y;
 }
 
 
@@ -367,6 +394,19 @@ matrix matrix::times(const matrix & A, const matrix & B)
     }
 
     return C;
+}
+
+
+matrix matrix::times(double n, const matrix & X)
+{
+    matrix Y(X);
+
+    for(size_t i(0); i < Y.m_data.size(); ++i)
+    {
+        Y.m_data[i] =  n * Y.m_data[i];
+    }
+
+    return Y;
 }
 
 
@@ -567,15 +607,33 @@ matrix operator+(const matrix & A, const matrix & B)
 }
 
 
+matrix operator+(double n, const matrix & X)
+{
+    return matrix::plus(n, X);
+}
+
+
 matrix operator-(const matrix & A, const matrix & B)
 {
     return matrix::minus(A, B);
 }
 
 
+matrix operator-(double n, const matrix & X)
+{
+    return matrix::minus(n, X);
+}
+
+
 matrix operator*(const matrix & A, const matrix & B)
 {
     return matrix::mtimes(A, B);
+}
+
+
+matrix operator*(double n, const matrix & X)
+{
+    return matrix::times(n, X);
 }
 
 
